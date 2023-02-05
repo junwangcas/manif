@@ -6,9 +6,11 @@ add_executable(se2_decasteljau se2_DeCasteljau.cpp)
 add_executable(se2_localization se2_localization.cpp)
 add_executable(se2_localization_ukfm se2_localization_ukfm.cpp)
 add_executable(se2_sam se2_sam.cpp)
+add_executable(se2_sam2 se2_sam2.cpp)
 
 add_executable(se3_localization se3_localization.cpp)
 add_executable(se3_sam se3_sam.cpp)
+
 add_executable(se3_sam_selfcalib se3_sam_selfcalib.cpp)
 
 add_executable(se_2_3_localization se_2_3_localization.cpp)
@@ -24,6 +26,7 @@ set(CXX_11_EXAMPLE_TARGETS
   se2_average
   se2_localization
   se2_sam
+        se2_sam2
 
   se2_localization_ukfm
 
