@@ -161,7 +161,7 @@
  *  produce measurements, then uses these measurements
  *  to estimate the state, using a graph representation
  *  and Lie-based non-linear iterative least squares solver
- *  that uses the pseudo-inverse method.
+ *  that uses the pseudo-inverse method. // pseudo-inverse与高斯牛顿有区别吗
  *
  *  This file has plain code with only one main() function.
  *  There are no function calls other than those involving `manif`.
@@ -334,6 +334,8 @@ int main()
      * We declare 9 pairs, or 9 factors, as follows:
      */
     vector<list<int>> pairs(NUM_POSES);
+    // 这里保存的就是pose观察到landmark的索引，后续只需要遍历它就可以
+    // 生成lmk观测
     pairs[0].push_back(0);  // 0-0
     pairs[0].push_back(1);  // 0-1
     pairs[0].push_back(3);  // 0-3
@@ -350,31 +352,40 @@ int main()
 
 
     //// Simulator ###################################################################
-    poses_simu. push_back(X_simu);
+    poses_simu. push_back(X_simu); // 这是第一个pose
     poses.      push_back(Xi + SE2Tangentd::Random());  // use very noisy priors
+//    std::cout << poses.back().translation().transpose() << "\n";
 
     // temporal loop
     for (int i = 0; i < NUM_POSES; ++i)
     {
+        // i 表示第几个pose
         // make measurements
         for (const auto& k : pairs[i])
         {
+            // k - 第几个lmk
             // simulate measurement
             b       = landmarks_simu[k];              // lmk coordinates in world frame
             y_noise = y_sigmas * ArrayY::Random();      // measurement noise
+            // y 表示measurement
             y       = X_simu.inverse().act(b);          // landmark measurement, before adding noise
 
             // add noise and compute prior lmk from prior pose
             measurements[i][k]  = y + y_noise;           // store noisy measurements
             b                   = Xi.act(y + y_noise);   // mapped landmark with noise
+            // 不仅增加了观测噪声，还增加了初始值噪声
             landmarks[k]        = b + VectorB::Random(); // use very noisy priors
         }
 
         // make motions
         if (i < NUM_POSES - 1) // do not make the last motion since we're done after 3rd pose
         {
+            // X_simu \in SE(2), u_norm \in se(2), 这中间直接是一个plus操作符
             // move simulator, without noise
+//            std::cout << X_simu.translation().transpose() << "\n";
             X_simu = X_simu + u_nom;
+//            std::cout << X_simu.translation().transpose() << "\n";
+//            std::abort();
 
             // move prior, with noise
             u_noise = u_sigmas * ArrayT::Random();
@@ -382,7 +393,7 @@ int main()
 
             // store
             poses_simu. push_back(X_simu);
-            poses.      push_back(Xi + SE2Tangentd::Random()); // use very noisy priors
+            poses.      push_back(Xi + SE2Tangentd::Random()); // use very noisy priors 这不就是用的那个plus操作符
             controls.   push_back(u_nom + u_noise);
         }
     }
@@ -404,7 +415,7 @@ int main()
     for (int iteration = 0; iteration < MAX_ITER; ++iteration)
     {
         // Clear residual vector and Jacobian matrix
-        r .setZero();
+        r .setZero(); // 每次迭代都要清除残差和雅克比
         J .setZero();
 
         // row and column for the full Jacobian matrix J, and row for residual r
@@ -428,12 +439,12 @@ int main()
          *  This is usually the case for pose priors, since it is natural
          *  to specify position and orientation wrt a global reference,
          *
-         *     r = W * (e (.-) y)
+         *     r = W * (e (.-) y)  // TODO
          *       = W * (e * y.inv).log()
          *
          *  When `y` is provided as a local reference, then right-minus (-.) is required,
          *
-         *     r = W * (e (-.) y)
+         *     r = W * (e (-.) y) //
          *       = W * (y.inv * e).log()
          *
          *  Notice that if y = Identity() then local and global residuals are the same.
@@ -453,7 +464,8 @@ int main()
          *  residual uses left-minus since reference measurement is global
          *     r = W * (poses[0] (.-) measurement) = log(poses[0] * Id.inv) = poses[0].log()
          *
-         *  Jacobian matrix :
+         *  Jacobian matrix : // TODO
+         *     // Jr_inv是什么：
          *     J_r_p0 = Jr_inv(log(poses[0]))         // see proof below
          *
          *     Proof: Let p0 = poses[0] and y = measurement. We have the partials
@@ -467,8 +479,11 @@ int main()
         // Notes:
         //   We have residual = expectation - measurement, in global tangent space
         //   We have the Jacobian in J_r_p0 = J.block<DoF, DoF>(row, col);
-        // We compute the whole in a one-liner:
+        // We compute the whole in a one-liner: // TODO
+//        std::cout << J.block<DoF, DoF>(row, col) << "\n";
         r.segment<DoF>(row)         = poses[0].lminus(SE2d::Identity(), J.block<DoF, DoF>(row, col)).coeffs();
+//        std::cout << J.block<DoF, DoF>(row, col) << "\n";
+//        std::abort();
 
         // advance rows
         row += DoF;
@@ -485,6 +500,7 @@ int main()
                 Xi = poses[i];
                 Xj = poses[j];
                 u  = controls[i];
+
 
                 // expectation (use right-minus since motion measurements are local)
                 d  = Xj.rminus(Xi, J_d_xj, J_d_xi); // expected motion = Xj (-) Xi
