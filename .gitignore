@@ -16,3 +16,7 @@ docs/m.css
 *__pycache__
 .pytest_cache
 dist
+
+.idea/
+
+cmake-build-debug/
