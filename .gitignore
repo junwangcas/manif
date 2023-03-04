@@ -20,3 +20,5 @@ dist
 .idea/
 
 cmake-build-debug/
+
+*.m~
