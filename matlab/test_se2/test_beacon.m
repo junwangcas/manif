@@ -1,4 +1,5 @@
 clear;
+include_sptatial_toolbox
 % 固定pose，lmk为变量
 Dim = 2;
 
