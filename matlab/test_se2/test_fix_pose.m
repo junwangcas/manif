@@ -21,17 +21,17 @@ subplot(1, 3, 1);
 for i = 1:NUM_POSES
     hold on; poses_simu{i}.plot;
 end
-xlim([-1, 4]); ylim([-2, 3]);
-axis auto
+%xlim([-1, 4]); ylim([-2, 3]);
+axis equal
 title('1 poses - gt');
 % initial values
 subplot(1, 3, 2);
 for i = 1:NUM_POSES
     hold on; poses{i}.plot;
 end
-xlim([-1, 4]); ylim([-2, 3]);
+%xlim([-1, 4]); ylim([-2, 3]);
 %axis equal
-axis auto
+axis equal
 title('2 poses - init');
 
 sploth = subplot(1, 3, 3);
@@ -56,9 +56,9 @@ for iteration = 1:MAX_ITER
     for i = 1:NUM_POSES
         hold on; poses{i}.plot;
     end
-    xlim([-1, 4]); ylim([-2, 3]);
+    %xlim([-1, 4]); ylim([-2, 3]);
     %axis equal
-    axis auto
+    axis equal
     title('3 poses - optimization');
     waitforbuttonpress;
     cla(sploth);
