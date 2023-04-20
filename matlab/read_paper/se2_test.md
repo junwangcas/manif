@@ -1,5 +1,7 @@
 ### 1. beacon optimization
 
+见代码：test_se2/test_beacon.m
+
 首先生成几个真值的landmark点(5个)
 
 <img src="/home/junwangcas/Documents/working/typora_imgs/2023/se2_test/image-20230316204714647.png" alt="image-20230316204714647" style="zoom: 50%;" />
