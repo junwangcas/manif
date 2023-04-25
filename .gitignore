@@ -22,3 +22,5 @@ dist
 cmake-build-debug/
 
 *.m~
+
+matlab/test_se2/hs_err_pid414600.log
