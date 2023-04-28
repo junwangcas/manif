@@ -8,7 +8,7 @@ NUM_LMKS = 5;
 NUM_FACTORS = 5;
 NUM_STATES = NUM_LMKS * Dim;
 NUM_MEAS = NUM_FACTORS * Dim;
-MAX_ITER = 20;
+MAX_ITER = 200;
 
 % Define five landmarks (beacons) in R^2
 landmarks_simu = [];
@@ -31,6 +31,9 @@ pairs = [pairs; [1, 3]];
 pairs = [pairs; [1, 4]];
 pairs = [pairs; [1, 5]];
 
+%x_lim = [-0.2, 4];
+%y_lim = [-2, 7];
+
 
 % Simulator
 poses_simu = cell(NUM_POSES, 1);
@@ -48,7 +51,7 @@ for id_pair = 1:length(pairs)
     y = X_simu.inv * b;
     
     measurements(id_pair, :) = y + y_noise;
-    landmarks(id_lmk, :) = b + rand(2, 1);%*100; 
+    landmarks(id_lmk, :) = b + rand(2, 1) * 1.5;%*100; 
 end
 
 %% visualize
@@ -56,23 +59,25 @@ end
 subplot(3, 1, 1);
 plot(landmarks_simu(:,1), landmarks_simu(:,2),'*r');
 hold on; poses_simu{1}.plot;
-%xlim([-1, 4]); ylim([-2, 3]);
+%xlim(x_lim); ylim(y_lim);
 axis equal
-title('1lmks poses - gt');
+title('1-lmks-gt');
 % initial values
 subplot(3, 1, 2);
 plot(landmarks(:,1), landmarks(:,2),'*r');
 for i = 1:NUM_POSES
     hold on; poses_simu{i}.plot;
 end
-%xlim([-1, 4]); ylim([-2, 3]);
+%xlim(x_lim); ylim(y_lim);
 axis equal
 %axis auto
-title('2lmks poses - init');
+title('2-lmks-init');
 
 sploth = subplot(3, 1, 3);
 % estimator
+update_ratio = 0.5;
 for iteration = 1:MAX_ITER
+    cla(sploth);
     iteration
     r = zeros(NUM_MEAS, 1);
     J = zeros(NUM_MEAS, NUM_STATES);
@@ -108,7 +113,7 @@ for iteration = 1:MAX_ITER
     dx = - inv(J' * J) * J' * r
     % update
     for i = 1 : length(landmarks)
-        landmarks(i, :) = landmarks(i, :) + dx((Dim * i - 1) : (Dim * i))';
+        landmarks(i, :) = landmarks(i, :) + update_ratio * dx((Dim * i - 1) : (Dim * i))';
     end
     
     % plot
@@ -116,12 +121,11 @@ for iteration = 1:MAX_ITER
     for i = 1:NUM_POSES
         hold on; poses_simu{i}.plot;
     end
-    xlim([-1, 4]); ylim([-2, 3]);
+    %xlim(x_lim); ylim(y_lim);
     axis equal
     %axis auto
-    title('3lmks poses - optimization');
-    waitforbuttonpress;
-    cla(sploth);
+    title('3-lmks-optimization');
+    pause(0.5);
 end
 
 
