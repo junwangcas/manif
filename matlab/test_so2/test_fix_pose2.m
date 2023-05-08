@@ -42,11 +42,12 @@ for iteration = 1:MAX_ITER
     J = zeros(NUM_MEAS, NUM_STATES);
     row = 1;
     
-    delta_pose = poses_simu{1}.inv * poses{1};
+    delta_pose = poses{1}.inv * poses_simu{1};
     r(row:(row + 1), 1) = so2vec(delta_pose.log);
     
     cols = 1:1;
-    J(row:(row+1), cols) = 1; 
+    AdM = 1;
+    J(row:(row+1), cols) = 1 * (-1); 
     
     dx = - inv(J' * J) * J' * r
     % update

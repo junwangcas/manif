@@ -30,52 +30,55 @@ $$J = \frac{\delta f}{\delta p} = \frac{M(p+\delta p) -y - (M*p - y )}{\delta p}
 
 ### 2. Test Fix Pose
 
-第一节中主要是把pose当成了常数，这里把pose当成变量，并将其固定住。脚本manif/matlab/test_se2/test_fix_pose.m
+第一节中主要是把pose当成了常数，这里把pose当成变量，并将其固定住。脚本manif/matlab/test_so2/test_fix_pose.m
+
+manif/matlab/test_so2/test_fix_pose2.m
 
 假设要pose要固定的值如左图，初始值如中图，最终优化的值如右图：
 
-<center>
-<img src="/home/junwangcas/Documents/working/typora_imgs/2023/se2_test/image-20230325112007698.png" alt="image-20230325112007698" style="zoom:50%;" />
-<img src="/home/junwangcas/Documents/working/typora_imgs/2023/se2_test/image-20230325112041881.png" alt="image-20230325112041881" style="zoom:50%;" />
-    <img src="/home/junwangcas/Documents/working/typora_imgs/2023/se2_test/image-20230325112403687.png" alt="image-20230325112403687" style="zoom:50%;" />
-<center>
+![image-20230508114115000](/home/junwangcas/Documents/working/typora_imgs/2023/so2_test/image-20230508114115000.png)
+
+
+
 令真值pose为$$\bar{M}$$, 那么目标函数可以写为：
 
-$$f = ( M \ominus \bar{M})^{\vee} = (\bar{M}^{-1}*M)^{\vee} = (Y * M)^{\vee}$$
+$$f = ( M \ominus \bar{M}) = (\bar{M}^{-1}*M) = (Y * M)$$
 
-以上$$f\in \mathbb{R}^{3}$$.  那它的雅克比，应该是$$J\in \mathbb{R}^{3\times 3}$$
+以上$$f\in \mathbb{R}^{1}$$.  那它的雅克比，应该是$$J\in \mathbb{R}^{1\times 1}$$, 参考 eq. 64 (这与SE2的形式都是一样的，且推导过程一样)
 
 $$J^{Y*M}_M = \frac{Log(Y*M*Exp(\tau)\ominus (Y*M))}{\tau}=\frac{Log(M^{-1}Y^{-1}*Y*M*Exp(\tau))}{\tau}=\frac{Log(Exp(\tau))}{\tau} = I$$
 
 还有一种情况，当把目标函数定义为如下：
 
-$$f = (\bar{M}\ominus M)^{\vee} = (M^{-1}*\bar{M})^\vee = (X * \bar{M})^\vee$$
+$$f = (\bar{M}\ominus M) = (M^{-1}*\bar{M}) = (X * \bar{M})$$
 
 根据eq. 62.
 
 $$J_M^{M^{-1} * \bar{M}} = J_{X}^{X*\bar{M}} * J_M^{M^{-1}}$$
 
-那就是分别对这两个东西求偏导
+那就是分别对这两个东西求偏导，第一个公式参考eq. 65。 这里面有一步关键的变换，在eq. 20. 
 
 $$J_{X}^{X*\bar{M}} = (Ad_\bar{M})^{-1}$$
 
 $$J_M^{M^{-1}} = -Ad_M$$
 
-关于$$Ad_M$$的求法，下面以SE2为例进行推导(参考Ex 6)
+第二个式子，见公式62. 具体实现见test_fix_pose2.m
 
-$$M = \begin{bmatrix}R&t\\ 0 &1\end{bmatrix}, \tau^{\hat{}} = \begin{bmatrix}\theta_{\times}&\rho\\0&0\end{bmatrix}, \tau = \begin{bmatrix}\rho\\ \theta\end{bmatrix}$$
+---
 
-因此，可以定义
+关于$$Ad_M$$的求法，下面以SO2为例进行推导(参考Ex 6)
 
-$$\bold{Ad}_M * \tau = (M*\tau^{\hat{}}*M^{-1})^{\vee} = (\begin{bmatrix}R&t\\ 0 &1\end{bmatrix} * \begin{bmatrix}\theta_{\times}&\rho\\0&0\end{bmatrix} * \begin{bmatrix} R^T & -R^Tt\\0&1 \end{bmatrix})^{\vee} \\ = (\begin{bmatrix} R\theta_{\times}&R\rho\\ 0&0\end{bmatrix} \begin{bmatrix} R^T & -R^Tt\\0&1 \end{bmatrix})^{\vee} \\ = \begin{bmatrix}R\theta_{\times}R^T&-R\theta_{\times}R^Tt + R\rho\\0 &0 \end{bmatrix})^{\vee}$$
+$$M = R, \tau^{\hat{}} = \theta_{\times}, \tau =  \theta$$
 
-然后利用$$R\theta_{\times}R^T = \theta_\times$$,  TODO: 这个地方很奇怪，用了这个替换之后，后面就推导不通过了。如果不用是可以的。
+因此，可以定义，利用$$R\theta_{\times}R^T = \theta_\times$$  (**Ex 6中说的似乎并不是这样，但是实验验证了一下，的确又是对的**)
 
-$$\bold{Ad}_M * \tau  = (\begin{bmatrix} \theta_\times & \theta_\times t+R\rho\\ 0 &0\end{bmatrix})^{\vee} \\= \begin{bmatrix}R\rho-\theta_\times t\\ \theta \end{bmatrix}$$ 
+$$\bold{Ad}_M * \tau = (M*\tau^{\hat{}}*M^{-1})^{\vee} = (R * \theta_{\times} *  R^T )^{\vee} \\ = (\theta_{\times})^{\vee} \\ = I\theta$$
 
-**上式通过验证没通过**。见 test_adjoint.m, line 34
+得到：
 
-$$\bold{Ad}_M * \tau = \begin{bmatrix}R\theta_{\times}R^T&-R\theta_{\times}R^Tt + R\rho\\0 &0 \end{bmatrix})^{\vee} \\=\begin{bmatrix}R\rho-\theta_\times t\\ \theta \end{bmatrix} = \begin{bmatrix}R&-1_{\times}t\\0& 1\end{bmatrix}\begin{bmatrix}\rho \\ \theta\end{bmatrix}$$
+$$\bold{Ad}_M = I$$
 
-上式验证通过。见式39
+---
+
+
 
