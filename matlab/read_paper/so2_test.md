@@ -83,7 +83,6 @@ $$\bold{Ad}_M = I$$
 ### 3. Test Poses
 
 参考test_so2/test_pose.m
-<<<<<<< HEAD
 
 在这一节中，固定住landmarks，主要求pose
 
