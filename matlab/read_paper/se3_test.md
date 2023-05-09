@@ -54,3 +54,34 @@ $$J_M^{M^{-1}}=-\begin{bmatrix}R&t_\times R\\0&R\end{bmatrix}$$
 
 ### 3. test poses
 
+参考test_se3/test_pose.m
+
+在这一节中，固定landmarks，主要求pose
+
+主力的目标函数为：
+
+$$f = M_G^L*p - y = {M_L^G}^{-1}*p - y = M^{-1}*p - y$$
+
+这里${M_L^G} = M$ 为变量，$p , y$为已知
+
+这里的$f \in R^{6}$, 变量M维度那雅克比$J\in R^{3\times 6}$
+
+求下面这个雅克比时，有一个非常容易错的，就是直接在$M^{-1}$上进行扰动，这样会导致后续的计算非常复杂，这个时候最好要借助链式法则，令$X = M^{-1}$
+
+$$J^{M^{-1}*p - y}_M = J^{X*p-y}_XJ^{X}_M$$
+
+---
+
+根据eq. 182, 这里是将$\tau$拆分开了，分为$\theta 与 \rho$部分，其中$\rho$求导得到的eq. 172的V(theta), 这个东西与R是相近的。
+
+$$J^{X*p-y}_X = \begin{bmatrix}R&-Rp_\times\end{bmatrix}$$
+
+这里R是X的
+
+---
+
+而
+
+$$J^{X}_M = J^{M^{-1}}_M = -\begin{bmatrix}R&t_\times R\\0 &R\end{bmatrix}$$
+
+![image-20230509145549808](/home/junwangcas/Documents/working/typora_imgs/2023/se3_test/image-20230509145549808.png)
