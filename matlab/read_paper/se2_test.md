@@ -87,3 +87,26 @@ $$\bold{Ad}_M * \tau = \begin{bmatrix}R\theta_{\times}R^T&-R\theta_{\times}R^Tt 
 
 上式验证通过。见式39
 
+### 3. Test pose
+
+参考test_se2/test_pose.m
+
+在这一节中，固定landmarks，主要求pose
+
+目标函数是：
+
+$$f = M_G^L*p - y = {M_L^G}^{-1}*p - y = M^{-1} * p - y$$
+
+这里${M_L^G} = M$ 为变量，$p , y$为已知
+
+这里的$f \in R^{2}$, 变量M维度那雅克比$J\in R^{2\times 3}$
+
+令$X = M^{-1}$
+
+$$J^{M^{-1}*p - y}_M = J^{X*p-y}_XJ^{X}_M$$
+
+对于$J^{X}_M$这里就不赘述了。
+
+$$J^{X*p-y}_X = \lim_{\tau->0} \frac{X*Exp(\tau)p - y - Xp +y}{\tau} \\ =\lim_{\tau->0}\frac{X\tau^{\hat{}} p}{\tau} = \lim_{\tau->0}\frac{\begin{bmatrix}R&t\\0&1\end{bmatrix}\begin{bmatrix}\theta_\times &\rho \\0 &0\end{bmatrix}p}{\tau}\\=\lim_{\tau->0}\frac{\begin{bmatrix}R\theta_{\times}&R\rho\\0&0\end{bmatrix}p}{\tau}\\ = \lim_{\tau->0}\frac{R\theta_{\times}p + R\rho}{\tau}$$
+
+随后，就可以比较容易得到eq. 166了。
